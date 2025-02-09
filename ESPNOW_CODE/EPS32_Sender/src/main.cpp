@@ -4,7 +4,7 @@
 hw_timer_t *timer = NULL;
 volatile bool sendFlag = false;
 
-uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // Broadcast
+uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // Broadcast address
 
 typedef struct struct_message {
     float speed;
@@ -57,6 +57,13 @@ void loop() {
         // Read the data from serial
         String receivedData = Serial.readStringUntil('\n');
         sscanf(receivedData.c_str(), "%f,%f,%f,%f", &myData.speed, &myData.rpm, &myData.fuel, &myData.temp);
+
+        // Print the data to serial (debugging)
+        Serial.print("Sending: ");
+        Serial.print("Speed: "); Serial.print(myData.speed);
+        Serial.print(" RPM: "); Serial.print(myData.rpm);
+        Serial.print(" Fuel: "); Serial.print(myData.fuel);
+        Serial.print(" Temp: "); Serial.println(myData.temp);
 
         // Send the data via ESP-NOW
         esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *)&myData, sizeof(myData));
