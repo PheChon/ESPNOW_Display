@@ -1,5 +1,13 @@
 #include <esp_now.h>
 #include <WiFi.h>
+#include <SPI.h>
+#include <TFT_eSPI.h>
+#include <Wire.h>
+
+#define Height 240
+#define Width 240
+
+TFT_eSPI tft = TFT_eSPI();
 
 typedef struct struct_message {
     float speed;
@@ -27,6 +35,13 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len) {
 void setup() {
     Serial.begin(115200);
     WiFi.mode(WIFI_STA);
+    tft.begin();
+    tft.setRotation(0);
+    tft.fillScreen(TFT_BLACK);
+    tft.setTextColor(TFT_WHITE, TFT_BLACK);
+    tft.setTextDatum(MC_DATUM);
+    tft.setFreeFont(&FreeSansBold24pt7b);
+    tft.setTextPadding(250);
 
     if (esp_now_init() != ESP_OK) {
         Serial.println("Error initializing ESP-NOW");
@@ -37,5 +52,6 @@ void setup() {
 }
 
 void loop() {
-    // Nothing to do here, everything is handled in the callback
+    tft.drawString("Speed:", Width / 2, Height / 3);
+    tft.drawFloat(myData.speed, 2, Width / 2, Height / 2);
 }
