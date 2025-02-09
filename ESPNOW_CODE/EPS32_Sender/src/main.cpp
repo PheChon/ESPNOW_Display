@@ -11,6 +11,7 @@ typedef struct struct_message {
     float rpm;
     float fuel;
     float temp;
+    int gear;  // Added gear variable
 } struct_message;
 
 struct_message myData;
@@ -56,14 +57,16 @@ void loop() {
     if (Serial.available()) {
         // Read the data from serial
         String receivedData = Serial.readStringUntil('\n');
-        sscanf(receivedData.c_str(), "%f,%f,%f,%f", &myData.speed, &myData.rpm, &myData.fuel, &myData.temp);
+        // Now also parse the gear value (added %d for gear)
+        sscanf(receivedData.c_str(), "%f,%f,%f,%f,%d", &myData.speed, &myData.rpm, &myData.fuel, &myData.temp, &myData.gear);
 
         // Print the data to serial (debugging)
         Serial.print("Sending: ");
         Serial.print("Speed: "); Serial.print(myData.speed);
         Serial.print(" RPM: "); Serial.print(myData.rpm);
         Serial.print(" Fuel: "); Serial.print(myData.fuel);
-        Serial.print(" Temp: "); Serial.println(myData.temp);
+        Serial.print(" Temp: "); Serial.print(myData.temp);
+        Serial.print(" Gear: "); Serial.println(myData.gear);
 
         // Send the data via ESP-NOW
         esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *)&myData, sizeof(myData));

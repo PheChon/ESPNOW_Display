@@ -14,6 +14,7 @@ typedef struct struct_message {
     float rpm;
     float fuel;
     float temp;
+    int gear;
 } struct_message;
 
 struct_message myData;
@@ -30,6 +31,8 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len) {
     Serial.println(myData.fuel);
     Serial.print("Received Temp: ");
     Serial.println(myData.temp);
+    Serial.print("Received Gear: ");
+    Serial.println(myData.gear);
 }
 
 void setup() {
@@ -52,6 +55,25 @@ void setup() {
 }
 
 void loop() {
-    tft.drawString("Speed:", Width / 2, Height / 3);
-    tft.drawFloat(myData.speed, 2, Width / 2, Height / 2);
+    if (myData.gear == 1)
+    {
+        tft.drawString("Speed:", Width / 2, Height / 3);
+        tft.drawFloat(myData.speed, 2, Width / 2, Height / 2);
+    }
+    else if (myData.gear == 2)
+    {
+        tft.drawString("RPM:", Width / 2, Height / 3);
+        tft.drawFloat(myData.rpm, 2, Width / 2, Height / 2);
+    }
+    else if (myData.gear == 3)
+    {
+        tft.drawString("Fuel%:", Width / 2, Height / 3);
+        tft.drawFloat(myData.fuel, 2, Width / 2, Height / 2);
+    }
+    else if (myData.gear == 4)
+    {
+        tft.drawString("Temp:", Width / 2, Height / 3);
+        tft.drawFloat(myData.temp, 2, Width / 2, Height / 2);
+    }
+    
 }

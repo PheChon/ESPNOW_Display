@@ -14,14 +14,16 @@ class Dashboard:
         self.rpm = tk.DoubleVar(value=0)  # RPM variable
         self.fuel = tk.DoubleVar(value=50)  # Fuel level variable
         self.temp = tk.DoubleVar(value=50)  # Temperature variable
+        self.gear = tk.IntVar(value=1)  # Gear value (1-4)
         
         # Store values in instance variables for easy access
         self.speed_value = 0
         self.rpm_value = 0
         self.fuel_value = 50
         self.temp_value = 50
+        self.gear_value = 1
         
-        self.collected_values = {"speed": self.speed_value, "rpm": self.rpm_value, "fuel": self.fuel_value, "temp": self.temp_value}
+        self.collected_values = {"speed": self.speed_value, "rpm": self.rpm_value, "fuel": self.fuel_value, "temp": self.temp_value, "gear": self.gear_value}
         
         self.draw_dashboard()
         self.update_dashboard()
@@ -31,6 +33,7 @@ class Dashboard:
         tk.Scale(root, from_=0, to=8000, orient='horizontal', label="RPM", variable=self.rpm, command=self.update_dashboard).pack()
         tk.Scale(root, from_=0, to=100, orient='horizontal', label="Fuel Level (%)", variable=self.fuel, command=self.update_dashboard).pack()
         tk.Scale(root, from_=0, to=120, orient='horizontal', label="Temperature (°C)", variable=self.temp, command=self.update_dashboard).pack()
+        tk.Scale(root, from_=1, to=4, orient='horizontal', label="Gear", variable=self.gear, command=self.update_dashboard).pack()  # Gear slider
         
         # Start the background thread to collect and print values
         self.running = True
@@ -55,6 +58,7 @@ class Dashboard:
         self.rpm_text = self.canvas.create_text(200, 80, text=f"RPM: {self.rpm.get()}", fill="white", font=("Arial", 20))
         self.fuel_text = self.canvas.create_text(200, 110, text=f"Fuel: {self.fuel.get()}%", fill="white", font=("Arial", 15))
         self.temp_text = self.canvas.create_text(200, 140, text=f"Temp: {self.temp.get()}°C", fill="white", font=("Arial", 15))
+        self.gear_text = self.canvas.create_text(200, 170, text=f"Gear: {self.gear.get()}", fill="white", font=("Arial", 15))  # Gear text
 
     def update_dashboard(self, event=None):
         """Update all dashboard values"""
@@ -62,7 +66,8 @@ class Dashboard:
         self.canvas.itemconfig(self.rpm_text, text=f"RPM: {self.rpm.get()}")
         self.canvas.itemconfig(self.fuel_text, text=f"Fuel: {self.fuel.get()}%")
         self.canvas.itemconfig(self.temp_text, text=f"Temp: {self.temp.get()}°C")
-    
+        self.canvas.itemconfig(self.gear_text, text=f"Gear: {self.gear.get()}")  # Update gear value
+
     def collect_values(self):
         """Continuously collect values into variables and send them to ESP32"""
         while self.running:
@@ -78,9 +83,10 @@ class Dashboard:
             self.rpm_value = self.rpm.get()
             self.fuel_value = self.fuel.get()
             self.temp_value = self.temp.get()
+            self.gear_value = self.gear.get()
 
             # Prepare data as a formatted string
-            data = f"{self.speed_value},{self.rpm_value},{self.fuel_value},{self.temp_value}\n"
+            data = f"{self.speed_value},{self.rpm_value},{self.fuel_value},{self.temp_value},{self.gear_value}\n"
             
             # Send the collected data to ESP32 via serial
             try:
