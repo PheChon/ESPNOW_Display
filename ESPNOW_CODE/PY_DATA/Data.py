@@ -69,7 +69,7 @@ class Dashboard:
             # Collect values from tkinter DoubleVar objects (run this safely on the main thread)
             self.root.after(0, self.update_values)
             # Wait for 0.1 seconds before collecting again
-            time.sleep(0.1)
+            time.sleep(0.001)
 
     def update_values(self):
         """Update the collected values"""
