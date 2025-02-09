@@ -7,7 +7,10 @@ volatile bool sendFlag = false;
 uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // Broadcast
 
 typedef struct struct_message {
-    char message[32];
+    float speed;
+    float rpm;
+    float fuel;
+    float temp;
 } struct_message;
 
 struct_message myData;
@@ -45,14 +48,17 @@ void setup() {
     // Initialize timer interrupt (100ms)
     timer = timerBegin(0, 80, true);  // Timer 0, prescaler 80 (1 tick = 1µs)
     timerAttachInterrupt(timer, &onTimer, true);
-    timerAlarmWrite(timer, 1000 , true);  //ตรงนี้เอาไว้ตั้งเวลาเด้อวัยรุ่น
+    timerAlarmWrite(timer, 1000 , true);  // Timer interval
     timerAlarmEnable(timer);
 }
 
 void loop() {
-    if (sendFlag) {
-        sendFlag = false;
-        strcpy(myData.message, "Hello, ESP-NOW!");
+    if (Serial.available()) {
+        // Read the data from serial
+        String receivedData = Serial.readStringUntil('\n');
+        sscanf(receivedData.c_str(), "%f,%f,%f,%f", &myData.speed, &myData.rpm, &myData.fuel, &myData.temp);
+
+        // Send the data via ESP-NOW
         esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *)&myData, sizeof(myData));
 
         if (result == ESP_OK) {

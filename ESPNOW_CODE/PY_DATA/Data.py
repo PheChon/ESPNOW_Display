@@ -1,7 +1,7 @@
 import tkinter as tk
 import threading
 import time
-
+import serial
 
 class Dashboard:
     def __init__(self, root):
@@ -37,6 +37,18 @@ class Dashboard:
         self.thread = threading.Thread(target=self.collect_values, daemon=True)
         self.thread.start()
 
+        # Setup serial connection to ESP32 (in the main thread)
+        self.ser = None  # Initially set to None
+        self.root.after(1, self.initialize_serial)
+
+    def initialize_serial(self):
+        """Initialize serial connection safely in the main thread."""
+        try:
+            self.ser = serial.Serial('COM7', 115200, timeout=1)  # Replace with the appropriate COM port
+            print("Serial connection established.")
+        except Exception as e:
+            print(f"Error opening serial port: {e}")
+
     def draw_dashboard(self):
         """Draw the dashboard elements"""
         self.speed_text = self.canvas.create_text(200, 50, text=f"Speed: {self.speed.get()} km/h", fill="white", font=("Arial", 20))
@@ -52,29 +64,36 @@ class Dashboard:
         self.canvas.itemconfig(self.temp_text, text=f"Temp: {self.temp.get()}°C")
     
     def collect_values(self):
-        """Continuously collect values into variables and print them"""
+        """Continuously collect values into variables and send them to ESP32"""
         while self.running:
-            # Collect values from the tkinter DoubleVar objects
+            # Collect values from tkinter DoubleVar objects (run this safely on the main thread)
+            self.root.after(0, self.update_values)
+            # Wait for 1 second before collecting again
+            time.sleep(0.001)
+
+    def update_values(self):
+        """Update the collected values"""
+        if self.ser is not None:  # Ensure serial connection is initialized
             self.speed_value = self.speed.get()
             self.rpm_value = self.rpm.get()
             self.fuel_value = self.fuel.get()
             self.temp_value = self.temp.get()
 
-            # Store the values in the collected_values dictionary
-            self.collected_values["speed"] = self.speed_value
-            self.collected_values["rpm"] = self.rpm_value
-            self.collected_values["fuel"] = self.fuel_value
-            self.collected_values["temp"] = self.temp_value
+            # Prepare data as a formatted string
+            data = f"{self.speed_value},{self.rpm_value},{self.fuel_value},{self.temp_value}\n"
             
-            # Print the collected values
-            print(f"Collected Values: Speed={self.speed_value} km/h, RPM={self.rpm_value}, Fuel={self.fuel_value}%, Temp={self.temp_value}°C")
-            
-            # Wait for 1 second before collecting again
-            time.sleep(1)
+            # Send the collected data to ESP32 via serial
+            try:
+                self.ser.write(data.encode())
+                print(f"Sent data: {data.strip()}")
+            except Exception as e:
+                print(f"Error sending data: {e}")
 
     def stop(self):
-        """Stop the background thread"""
+        """Stop the background thread and close the serial connection"""
         self.running = False
+        if self.ser is not None:
+            self.ser.close()
     
     def get_values(self):
         """Return collected values"""
@@ -85,4 +104,3 @@ if __name__ == "__main__":
     app = Dashboard(root)
     root.protocol("WM_DELETE_WINDOW", lambda: (app.stop(), root.destroy()))  # Ensure thread stops on close
     root.mainloop()
-
