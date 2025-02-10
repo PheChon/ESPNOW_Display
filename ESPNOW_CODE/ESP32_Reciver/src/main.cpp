@@ -22,7 +22,6 @@ struct_message myData;
 void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len) {
     memcpy(&myData, incomingData, sizeof(myData));
 
-    // Print received data to the serial monitor
     Serial.print("Received Speed: ");
     Serial.println(myData.speed);
     Serial.print("Received RPM: ");

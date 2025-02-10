@@ -11,7 +11,7 @@ typedef struct struct_message {
     float rpm;
     float fuel;
     float temp;
-    int gear;  // Added gear variable
+    int gear;  
 } struct_message;
 
 struct_message myData;
@@ -46,21 +46,20 @@ void setup() {
         return;
     }
 
-    // Initialize timer interrupt (100ms)
-    timer = timerBegin(0, 80, true);  // Timer 0, prescaler 80 (1 tick = 1µs)
+    timer = timerBegin(0, 80, true);  
     timerAttachInterrupt(timer, &onTimer, true);
-    timerAlarmWrite(timer, 1000 , true);  // Timer interval
+    timerAlarmWrite(timer, 1000 , true);  //เปลี่ยนเวลาส่งตรงนี้เด้อ หน่วย us
     timerAlarmEnable(timer);
 }
 
 void loop() {
     if (Serial.available()) {
-        // Read the data from serial
+        
         String receivedData = Serial.readStringUntil('\n');
-        // Now also parse the gear value (added %d for gear)
+        
         sscanf(receivedData.c_str(), "%f,%f,%f,%f,%d", &myData.speed, &myData.rpm, &myData.fuel, &myData.temp, &myData.gear);
 
-        // Print the data to serial (debugging)
+        
         Serial.print("Sending: ");
         Serial.print("Speed: "); Serial.print(myData.speed);
         Serial.print(" RPM: "); Serial.print(myData.rpm);

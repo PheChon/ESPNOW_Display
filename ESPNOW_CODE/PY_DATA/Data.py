@@ -16,7 +16,6 @@ class Dashboard:
         self.temp = tk.DoubleVar(value=50)  # Temperature variable
         self.gear = tk.IntVar(value=1)  # Gear value (1-4)
         
-        # Store values in instance variables for easy access
         self.speed_value = 0
         self.rpm_value = 0
         self.fuel_value = 50
@@ -35,13 +34,11 @@ class Dashboard:
         tk.Scale(root, from_=0, to=120, orient='horizontal', label="Temperature (°C)", variable=self.temp, command=self.update_dashboard).pack()
         tk.Scale(root, from_=1, to=4, orient='horizontal', label="Gear", variable=self.gear, command=self.update_dashboard).pack()  # Gear slider
         
-        # Start the background thread to collect and print values
         self.running = True
         self.thread = threading.Thread(target=self.collect_values, daemon=True)
         self.thread.start()
 
-        # Setup serial connection to ESP32 (in the main thread)
-        self.ser = None  # Initially set to None
+        self.ser = None 
         self.root.after(1, self.initialize_serial)
 
     def initialize_serial(self):
@@ -66,29 +63,27 @@ class Dashboard:
         self.canvas.itemconfig(self.rpm_text, text=f"RPM: {self.rpm.get()}")
         self.canvas.itemconfig(self.fuel_text, text=f"Fuel: {self.fuel.get()}%")
         self.canvas.itemconfig(self.temp_text, text=f"Temp: {self.temp.get()}°C")
-        self.canvas.itemconfig(self.gear_text, text=f"Gear: {self.gear.get()}")  # Update gear value
+        self.canvas.itemconfig(self.gear_text, text=f"Gear: {self.gear.get()}")  
 
     def collect_values(self):
         """Continuously collect values into variables and send them to ESP32"""
         while self.running:
-            # Collect values from tkinter DoubleVar objects (run this safely on the main thread)
+            
             self.root.after(0, self.update_values)
-            # Wait for 0.1 seconds before collecting again
-            time.sleep(0.001)
+            
+            time.sleep(0.001) #เปลี่ยนเวลาส่งตรงนี้เด้อ หน่วย sec
 
     def update_values(self):
         """Update the collected values"""
-        if self.ser is not None:  # Ensure serial connection is initialized
+        if self.ser is not None:  
             self.speed_value = self.speed.get()
             self.rpm_value = self.rpm.get()
             self.fuel_value = self.fuel.get()
             self.temp_value = self.temp.get()
             self.gear_value = self.gear.get()
-
-            # Prepare data as a formatted string
+ 
             data = f"{self.speed_value},{self.rpm_value},{self.fuel_value},{self.temp_value},{self.gear_value}\n"
             
-            # Send the collected data to ESP32 via serial
             try:
                 self.ser.write(data.encode())
                 print(f"Sent data: {data.strip()}")
@@ -108,5 +103,5 @@ class Dashboard:
 if __name__ == "__main__":
     root = tk.Tk()
     app = Dashboard(root)
-    root.protocol("WM_DELETE_WINDOW", lambda: (app.stop(), root.destroy()))  # Ensure thread stops on close
+    root.protocol("WM_DELETE_WINDOW", lambda: (app.stop(), root.destroy())) 
     root.mainloop()
