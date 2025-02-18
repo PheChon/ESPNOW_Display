@@ -74,5 +74,7 @@ void loop() {
         tft.drawString("Temp:", Width / 2, Height / 3);
         tft.drawFloat(myData.temp, 2, Width / 2, Height / 2);
     }
-    
+    else 
+        tft.drawString("NoData:", Width / 2, Height / 2);
+        
 }
